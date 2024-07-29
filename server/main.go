@@ -10,23 +10,43 @@ import (
 	"sync"
 	"time"
 
+	"github.com/godbus/dbus/v5"
+	"github.com/nickrobison/terraform-linux-provider/server/middleware"
+	"github.com/nickrobison/terraform-linux-provider/server/zfs"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 func run(ctx context.Context, w io.Writer, args []string) error {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	middleware.SetupLogging(w, zerolog.DebugLevel)
+	log := middleware.Logger()
 
 	log.Print("Hello world!")
 
-	srv := newServer()
+	// Connect to DBUS
+	// Should be session bus
+	conn, err := dbus.ConnectSessionBus()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to connect to bus")
+		return err
+	}
+
+	zfsClient, err := zfs.NewZfsClient(conn)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to connect to dbus object")
+		return err
+	}
+	zfsVersion := zfsClient.Version()
+
+	log.Info().Msgf("Initialized Zfs client with version %s", zfsVersion)
+
+	srv := newServer(zfsClient)
 	httpServer := &http.Server{
 		Addr:    net.JoinHostPort("localhost", "8080"),
 		Handler: srv,
 	}
 
 	go func() {
-		log.Printf("Listenting on %s\n", httpServer.Addr)
+		log.Info().Msgf("Listenting on %s", httpServer.Addr)
 		err := httpServer.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
 			log.Error().Err(err).Msg("Failed to start server")
