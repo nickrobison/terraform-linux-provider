@@ -35,7 +35,10 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 		log.Error().Err(err).Msg("Failed to connect to dbus object")
 		return err
 	}
-	zfsVersion := zfsClient.Version()
+	zfsVersion, err := zfsClient.Version()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
 
 	log.Info().Msgf("Initialized Zfs client with version %s", zfsVersion)
 

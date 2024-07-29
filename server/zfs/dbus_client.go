@@ -6,7 +6,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
-	"github.com/nickrobison/terraform-linux-provider/common"
+	"github.com/nickrobison/terraform-linux-provider/server/bus"
 	"github.com/nickrobison/terraform-linux-provider/server/middleware"
 	"github.com/rs/zerolog"
 )
@@ -18,8 +18,9 @@ var (
 )
 
 type ZfsDebusClient struct {
-	log *zerolog.Logger
-	obj dbus.BusObject
+	conn *dbus.Conn
+	log  *zerolog.Logger
+	obj  dbus.BusObject
 }
 
 func NewZfsClient(conn *dbus.Conn) (ZfsClient, error) {
@@ -36,21 +37,32 @@ func NewZfsClient(conn *dbus.Conn) (ZfsClient, error) {
 	}
 	log.Debug().Msgf("%s\n", string(data))
 
-	return &ZfsDebusClient{obj: obj, log: &log}, nil
+	log = log.With().Interface("path", obj.Path()).Logger()
+
+	return &ZfsDebusClient{conn: conn, obj: obj, log: &log}, nil
 }
 
-func (c *ZfsDebusClient) ListPools(ctx context.Context) ([]common.ZPool, error) {
-	return nil, nil
+func (c *ZfsDebusClient) ListPools(ctx context.Context) ([]*ZpoolObject, error) {
+	m := prefix + "Pools"
+	var poolObjs []dbus.ObjectPath
+	err := c.obj.CallWithContext(ctx, m, 0).Store(&poolObjs)
+	if err != nil {
+		return nil, err
+	}
+	c.log.Debug().Interface("paths", poolObjs).Msg("Received zpools")
+
+	pools := make([]*ZpoolObject, len(poolObjs))
+	for i, p := range poolObjs {
+		obj := c.conn.Object(destination, p)
+		pools[i] = NewZpoolObject(obj, c.log)
+	}
+
+	return pools, nil
+
 }
 
 func (c *ZfsDebusClient) Version() (string, error) {
-	var version string
 	name := prefix + "Version"
-	prop, err := c.obj.GetProperty(name)
-	if err != nil {
-		return name, err
-	}
-	c.log.Info().Str("property", name).Interface("variant", prop.Signature().String()).Msg("Received response")
-	prop.Store(&version)
-	return version, nil
+	version, err := bus.Decode[string](c.log, c.obj, name)
+	return version, err
 }

@@ -2,11 +2,9 @@ package zfs
 
 import (
 	"context"
-
-	"github.com/nickrobison/terraform-linux-provider/common"
 )
 
 type ZfsClient interface {
-	ListPools(ctx context.Context) ([]common.ZPool, error)
+	ListPools(ctx context.Context) ([]*ZpoolObject, error)
 	Version() (string, error)
 }
