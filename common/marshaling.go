@@ -15,11 +15,16 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) erro
 	return nil
 }
 
-func Decode[T any](r *http.Request) (T, error) {
+func Decode[T any](r *http.Response) (T, error) {
 	var v T
+	err := DecodeInto[T](r, &v)
+	return v, err
+}
+
+func DecodeInto[T any](r *http.Response, v *T) error {
 	err := json.NewDecoder(r.Body).Decode(&v)
 	if err != nil {
-		return v, err
+		return err
 	}
-	return v, nil
+	return nil
 }

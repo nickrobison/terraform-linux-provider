@@ -18,7 +18,7 @@ func HandleZpoolList(client ZfsClient) http.Handler {
 			return
 		}
 
-		pools := make([]common.ZPool, len(objects))
+		pools := make([]common.ZPoolResponse, len(objects))
 		for i, v := range objects {
 			name, err := v.Name()
 			if err != nil {
@@ -26,7 +26,7 @@ func HandleZpoolList(client ZfsClient) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			pools[i] = common.ZPool{
+			pools[i] = common.ZPoolResponse{
 				Name: name,
 			}
 		}
