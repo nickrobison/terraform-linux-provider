@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/nickrobison/terraform-linux-provider/server/firewall"
 	"github.com/nickrobison/terraform-linux-provider/server/middleware"
 	"github.com/nickrobison/terraform-linux-provider/server/zfs"
 	"github.com/rs/zerolog"
@@ -42,7 +43,19 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 
 	log.Info().Msgf("Initialized Zfs client with version %s", zfsVersion)
 
-	srv := newServer(zfsClient)
+	firewallClient, err := firewall.NewFirewallClient(conn)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to connect to firewall dbus object")
+		return err
+	}
+	firewallVersion, err := firewallClient.Version()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+
+	log.Info().Msgf("Initialized Firewall client with version %s", firewallVersion)
+
+	srv := newServer(zfsClient, firewallClient)
 	httpServer := &http.Server{
 		Addr:    net.JoinHostPort("localhost", "8080"),
 		Handler: srv,

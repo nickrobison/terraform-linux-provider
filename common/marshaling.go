@@ -28,3 +28,11 @@ func DecodeInto[T any](r *http.Response, v *T) error {
 	}
 	return nil
 }
+
+func DecodeRequest[T any](r *http.Request, v *T) error {
+	err := json.NewDecoder(r.Body).Decode(&v)
+	if err != nil {
+		return err
+	}
+	return nil
+}

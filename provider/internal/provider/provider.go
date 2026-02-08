@@ -129,12 +129,14 @@ func (p *LinuxProvider) Configure(ctx context.Context, req provider.ConfigureReq
 func (p *LinuxProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewZpoolResource,
+		NewFirewallZoneResource,
 	}
 }
 
 func (p *LinuxProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewZpoolDataSource,
+		NewFirewallZoneDataSource,
 	}
 }
 
