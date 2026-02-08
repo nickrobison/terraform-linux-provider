@@ -61,7 +61,7 @@ func (c *FirewallDebusClient) ListZones(ctx context.Context) ([]*ZoneObject, err
 			return nil, err
 		}
 		obj := c.conn.Object(destination, zonePath)
-		zones[i] = NewZoneObject(obj, c.log)
+		zones[i] = NewZoneObject(obj, c.log, zoneName)
 	}
 
 	return zones, nil
@@ -75,19 +75,58 @@ func (c *FirewallDebusClient) GetZone(ctx context.Context, name string) (*ZoneOb
 		return nil, err
 	}
 	obj := c.conn.Object(destination, zonePath)
-	return NewZoneObject(obj, c.log), nil
+	return NewZoneObject(obj, c.log, name), nil
 }
 
 func (c *FirewallDebusClient) AddZone(ctx context.Context, name string, settings ZoneSettings) error {
+	// According to firewalld DBus documentation, addZone expects a complete settings tuple:
+	// (version, name, description, UNUSED, target, [services], [ports], [icmp-blocks], 
+	//  masquerade, [forward-ports], [interfaces], [sources], [rich rules], [protocols], 
+	//  [source-ports], [icmp-block-inversion])
+	
 	m := prefix + "config.addZone"
-	settingsMap := make(map[string]dbus.Variant)
-	if settings.Description != "" {
-		settingsMap["description"] = dbus.MakeVariant(settings.Description)
+	
+	// Build the settings tuple according to firewalld DBus spec
+	version := "1.0"
+	unused := false
+	target := settings.Target
+	if target == "" {
+		target = "default"
 	}
-	if settings.Target != "" {
-		settingsMap["target"] = dbus.MakeVariant(settings.Target)
+	
+	// Create empty arrays for fields we're not setting
+	services := []string{}
+	ports := [][]interface{}{}
+	icmpBlocks := []string{}
+	masquerade := false
+	forwardPorts := [][]interface{}{}
+	interfaces := []string{}
+	sources := []string{}
+	richRules := []string{}
+	protocols := []string{}
+	sourcePorts := [][]interface{}{}
+	icmpBlockInversion := false
+	
+	settingsTuple := []interface{}{
+		version,
+		name,
+		settings.Description,
+		unused,
+		target,
+		services,
+		ports,
+		icmpBlocks,
+		masquerade,
+		forwardPorts,
+		interfaces,
+		sources,
+		richRules,
+		protocols,
+		sourcePorts,
+		icmpBlockInversion,
 	}
-	return c.obj.CallWithContext(ctx, m, 0, name, settingsMap).Err
+	
+	return c.obj.CallWithContext(ctx, m, 0, name, settingsTuple).Err
 }
 
 func (c *FirewallDebusClient) RemoveZone(ctx context.Context, name string) error {
