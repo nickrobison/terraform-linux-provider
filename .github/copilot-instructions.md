@@ -102,11 +102,12 @@ The provider never directly interacts with Linux system services. All system int
 ## Code Standards
 
 ### Required Before Each Commit
-- Run `go test ./...` to ensure all tests pass
+- Run `go test ./... -short -v -race` to ensure all tests pass (matches CI)
 - For provider changes, run `cd provider && make testacc` to verify acceptance tests
 - Run `go build ./...` to verify no compilation errors
 - Run `go mod tidy` if you added or removed dependencies
 - Ensure new code has appropriate test coverage
+- CI will automatically run unit tests (with race detection) and integration tests on PRs
 
 ## Code Style and Conventions
 
@@ -227,11 +228,17 @@ The provider never directly interacts with Linux system services. All system int
 - Monitor HashiCorp provider best practices and migration guides
 
 ## CI/CD and Quality Checks
-- Currently no GitHub Actions workflows configured
-- All tests must be run locally before committing
-- Run acceptance tests with `cd provider && make testacc` (requires Linux with ZFS)
-- Run unit tests with `go test ./...` from repository root
-- Ensure Go 1.22.4 compatibility for all changes
+- **GitHub Actions workflows** are configured for automated testing:
+  - **Unit Tests** (`.github/workflows/unit-tests.yml`): Runs on Go 1.22.x and 1.23.x, includes race detection and coverage reporting
+  - **Integration Tests** (`.github/workflows/integration-tests.yml`): Runs acceptance tests with `TF_ACC=1` on Go 1.22.x
+- Workflows run automatically on:
+  - Push to `main` branch
+  - Pull request creation and updates
+- Local testing before committing:
+  - Run unit tests: `go test ./... -short -v -race` (matches CI unit tests)
+  - Run acceptance tests: `cd provider && make testacc` (requires Linux with ZFS)
+  - Run all tests: `go test ./...` from repository root
+- Ensure Go 1.22.4+ compatibility for all changes (CI tests 1.22.x and 1.23.x)
 - Acceptance tests require a Linux environment with ZFS and D-Bus available
 
 ## Common Pitfalls to Avoid
