@@ -57,6 +57,30 @@ func (m *mockFirewallClient) Version() (string, error) {
 	return "1.0.0", nil
 }
 
+func (m *mockFirewallClient) AddRichRule(ctx context.Context, zone string, rule string) error {
+	return nil
+}
+
+func (m *mockFirewallClient) RemoveRichRule(ctx context.Context, zone string, rule string) error {
+	return nil
+}
+
+func (m *mockFirewallClient) AddPort(ctx context.Context, zone string, port string, protocol string) error {
+	return nil
+}
+
+func (m *mockFirewallClient) RemovePort(ctx context.Context, zone string, port string, protocol string) error {
+	return nil
+}
+
+func (m *mockFirewallClient) AddService(ctx context.Context, zone string, service string) error {
+	return nil
+}
+
+func (m *mockFirewallClient) RemoveService(ctx context.Context, zone string, service string) error {
+	return nil
+}
+
 // Tests
 
 func TestFirewallClientInterface(t *testing.T) {

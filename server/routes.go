@@ -25,4 +25,6 @@ func addRoutes(mux *http.ServeMux, zfsClient zfs.ZfsClient, firewallClient firew
 	mux.Handle("GET /firewall/zones/{name}", firewall.HandleZoneGet(firewallClient))
 	mux.Handle("POST /firewall/zones", firewall.HandleZoneCreate(firewallClient))
 	mux.Handle("DELETE /firewall/zones/{name}", firewall.HandleZoneDelete(firewallClient))
+	mux.Handle("POST /firewall/rules", firewall.HandleRuleAdd(firewallClient))
+	mux.Handle("DELETE /firewall/rules", firewall.HandleRuleRemove(firewallClient))
 }

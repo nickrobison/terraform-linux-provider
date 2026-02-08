@@ -130,6 +130,7 @@ func (p *LinuxProvider) Resources(ctx context.Context) []func() resource.Resourc
 	return []func() resource.Resource{
 		NewZpoolResource,
 		NewFirewallZoneResource,
+		NewFirewallRuleResource,
 	}
 }
 

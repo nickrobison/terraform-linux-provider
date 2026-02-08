@@ -179,3 +179,54 @@ func (c *Client) FirewallDeleteZone(ctx context.Context, name string) error {
 
 	return nil
 }
+
+func (c *Client) FirewallAddRule(ctx context.Context, rule FirewallRuleRequest) (FirewallRuleResponse, error) {
+	var result FirewallRuleResponse
+	body, err := json.Marshal(rule)
+	if err != nil {
+		return result, err
+	}
+	url := c.createUrl("firewall", "rules")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
+		return result, err
+	}
+
+	resp, err := c.doRequest(req)
+	if err != nil {
+		return result, err
+	}
+	if resp.StatusCode != http.StatusCreated {
+		defer resp.Body.Close()
+		b, _ := io.ReadAll(resp.Body)
+		e := fmt.Errorf("failed to add rule. error: %s", string(b))
+		return result, e
+	}
+	DecodeInto(resp, &result)
+	return result, nil
+}
+
+func (c *Client) FirewallRemoveRule(ctx context.Context, rule FirewallRuleRequest) error {
+	body, err := json.Marshal(rule)
+	if err != nil {
+		return err
+	}
+	url := c.createUrl("firewall", "rules")
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.doRequest(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		defer resp.Body.Close()
+		b, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to remove rule. error: %s", string(b))
+	}
+
+	return nil
+}

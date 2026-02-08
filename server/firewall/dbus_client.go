@@ -100,3 +100,35 @@ func (c *FirewallDebusClient) Version() (string, error) {
 	version, err := bus.Decode[string](c.log, c.obj, name)
 	return version, err
 }
+
+func (c *FirewallDebusClient) AddRichRule(ctx context.Context, zone string, rule string) error {
+	m := prefix + "zone.addRichRule"
+	return c.obj.CallWithContext(ctx, m, 0, zone, rule).Err
+}
+
+func (c *FirewallDebusClient) RemoveRichRule(ctx context.Context, zone string, rule string) error {
+	m := prefix + "zone.removeRichRule"
+	return c.obj.CallWithContext(ctx, m, 0, zone, rule).Err
+}
+
+func (c *FirewallDebusClient) AddPort(ctx context.Context, zone string, port string, protocol string) error {
+	m := prefix + "zone.addPort"
+	portProto := port + "/" + protocol
+	return c.obj.CallWithContext(ctx, m, 0, zone, portProto, 0).Err
+}
+
+func (c *FirewallDebusClient) RemovePort(ctx context.Context, zone string, port string, protocol string) error {
+	m := prefix + "zone.removePort"
+	portProto := port + "/" + protocol
+	return c.obj.CallWithContext(ctx, m, 0, zone, portProto).Err
+}
+
+func (c *FirewallDebusClient) AddService(ctx context.Context, zone string, service string) error {
+	m := prefix + "zone.addService"
+	return c.obj.CallWithContext(ctx, m, 0, zone, service, 0).Err
+}
+
+func (c *FirewallDebusClient) RemoveService(ctx context.Context, zone string, service string) error {
+	m := prefix + "zone.removeService"
+	return c.obj.CallWithContext(ctx, m, 0, zone, service).Err
+}
