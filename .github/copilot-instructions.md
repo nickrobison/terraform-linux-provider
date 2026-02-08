@@ -238,7 +238,7 @@ The provider never directly interacts with Linux system services. All system int
   - Run unit tests: `go test ./... -short -v -race` (matches CI unit tests)
   - Run acceptance tests: `cd provider && make testacc` (requires Linux with ZFS)
   - Run all tests: `go test ./...` from repository root
-- Ensure Go 1.22.4+ compatibility for all changes (CI tests 1.22.x and 1.23.x)
+- Ensure Go 1.22.4 or later compatibility (go.mod requires 1.22.4; CI tests against 1.22.x and 1.23.x)
 - Acceptance tests require a Linux environment with ZFS and D-Bus available
 
 ## Common Pitfalls to Avoid
